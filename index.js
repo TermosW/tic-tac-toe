@@ -4,10 +4,26 @@ const EMPTY = ' ';
 
 const container = document.getElementById('fieldWrapper');
 
+const gameField = [[], [], []]
+let clickCounter = 0
+const possibleClicksCount = 3 * 3
+
 startGame();
 addResetListener();
 
+function initGameField(dimension, gameField){
+    // gameField.map((element) => [EMPTY])
+    for (let i = 0; i < dimension; i++) {
+        gameField[i] = new Array(dimension)
+        for (let j = 0; j < dimension; j++) {
+            gameField[i][j] = EMPTY;
+        }
+    }
+    console.log(gameField, 'Field initialized')
+}
+
 function startGame () {
+    initGameField(3, gameField);
     renderGrid(3);
 }
 
@@ -26,14 +42,63 @@ function renderGrid (dimension) {
     }
 }
 
+function checkWinner(gameField){
+    const checkHorizontalWinner = () => {
+        for (let i=0;i<gameField.length;i++){
+            let rowString = gameField[i].join("")
+            if (rowString === CROSS.repeat(gameField.length)){
+                alert(`${CROSS} победил`)
+                break
+            }
+            else if(rowString === ZERO.repeat(gameField.length)) {
+                alert(`${ZERO} победил`)
+                break
+            }
+        }
+    }
+    const checkVerticalWinner = (index) => {
+        let result = false
+        let flatArray = gameField.flat(2)
+        console.log(flatArray)
+        let word = ''
+        for (let i = index; i < flatArray.length; i+=gameField.length) {
+            if(flatArray[i]===EMPTY)
+                continue
+            word += flatArray[i]
+        }
+        if( word===CROSS.repeat(gameField.length)){
+            alert(`${CROSS} победил`)
+            return true
+        }
+        else if( word===ZERO.repeat(gameField.length)){
+            alert(`${ZERO} победил`)
+            return true
+        }
+    }
+    const checkDiagonalWinner = () => {
+        
+    }
+    checkHorizontalWinner()
+    for(let i=0;i<gameField.length;i++){
+        if(checkVerticalWinner(i)){
+            break
+        }
+    }
+    checkDiagonalWinner()
+}
+
 function cellClickHandler (row, col) {
-    // Пиши код тут
-    console.log(`Clicked on cell: ${row}, ${col}`);
-
-
-    /* Пользоваться методом для размещения символа в клетке так:
-        renderSymbolInCell(ZERO, row, col);
-     */
+    if (gameField[row][col]===EMPTY){
+        let fieldState = clickCounter % 2 === 0 ? CROSS : ZERO;
+        gameField[row][col] = fieldState;
+        console.log(`Clicked on cell: ${row}, ${col}`);
+        clickCounter++;
+        renderSymbolInCell(fieldState, row, col);
+        console.log(gameField);
+    }
+    checkWinner(gameField)
+    if (clickCounter === possibleClicksCount)
+        alert('Победила дружба')
 }
 
 function renderSymbolInCell (symbol, row, col, color = '#333') {

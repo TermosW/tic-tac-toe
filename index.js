@@ -48,16 +48,17 @@ function checkWinner(gameField){
             let rowString = gameField[i].join("")
             if (rowString === CROSS.repeat(gameField.length)){
                 alert(`${CROSS} победил`)
+                paintWinningFields(rowString, i)
                 break
             }
             else if(rowString === ZERO.repeat(gameField.length)) {
                 alert(`${ZERO} победил`)
+                paintWinningFields(rowString, i)
                 break
             }
         }
     }
     const checkVerticalWinner = (index) => {
-        let result = false
         let flatArray = gameField.flat(2)
         console.log(flatArray)
         let word = ''
@@ -68,15 +69,28 @@ function checkWinner(gameField){
         }
         if( word===CROSS.repeat(gameField.length)){
             alert(`${CROSS} победил`)
+            paintWinningFields(gameField, index, true)
             return true
         }
         else if( word===ZERO.repeat(gameField.length)){
             alert(`${ZERO} победил`)
+            paintWinningFields(gameField, index, true)
             return true
         }
     }
     const checkDiagonalWinner = () => {
-        
+
+    }
+    const paintWinningFields = (line, startIndex, col = false) => {
+        if (col){
+            for (let i = 0; i < line.length; i++) {
+                findCell(i, startIndex).style.color = 'red'
+            }
+            return
+        }
+        for (let i = 0; i < line.length; i++) {
+            findCell(startIndex, i).style.color = 'red'
+        }
     }
     checkHorizontalWinner()
     for(let i=0;i<gameField.length;i++){

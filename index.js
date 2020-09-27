@@ -4,15 +4,25 @@ const EMPTY = ' ';
 
 const container = document.getElementById('fieldWrapper');
 
-const gameField = [[], [], []]
+const sideLength = prompt('Введите размерность поля 3 или больше')
+const gameField = makeField()
 let clickCounter = 0
-const possibleClicksCount = 3 * 3
+let checkWin = false
+const possibleClicksCount = gameField.length * gameField.length
+
 
 startGame();
 addResetListener();
 
+function makeField(){
+    let Field = []
+    for( let i = 0; i<Number(sideLength);i++){
+        Field.push(Field);
+    }
+    return Field;
+}
+
 function initGameField(dimension, gameField){
-    // gameField.map((element) => [EMPTY])
     for (let i = 0; i < dimension; i++) {
         gameField[i] = new Array(dimension)
         for (let j = 0; j < dimension; j++) {
@@ -23,8 +33,8 @@ function initGameField(dimension, gameField){
 }
 
 function startGame () {
-    initGameField(3, gameField);
-    renderGrid(3);
+    initGameField(sideLength, gameField);
+    renderGrid(sideLength);
 }
 
 function renderGrid (dimension) {
@@ -43,24 +53,31 @@ function renderGrid (dimension) {
 }
 
 function checkWinner(gameField){
+    const crossWin=()=>{
+        alert(`${CROSS} победил`)
+        checkWin = true
+        return true
+    }
+    const zeroWin=()=>{
+        alert(`${ZERO} победил`)
+        checkWin = true
+        return true
+    }
     const checkHorizontalWinner = () => {
         for (let i=0;i<gameField.length;i++){
             let rowString = gameField[i].join("")
             if (rowString === CROSS.repeat(gameField.length)){
-                alert(`${CROSS} победил`)
                 paintWinningFields(rowString, i)
-                break
+                crossWin()
             }
             else if(rowString === ZERO.repeat(gameField.length)) {
-                alert(`${ZERO} победил`)
                 paintWinningFields(rowString, i)
-                break
+                zeroWin()
             }
         }
     }
     const checkVerticalWinner = (index) => {
         let flatArray = gameField.flat(2)
-        console.log(flatArray)
         let word = ''
         for (let i = index; i < flatArray.length; i+=gameField.length) {
             if(flatArray[i]===EMPTY)
@@ -68,20 +85,71 @@ function checkWinner(gameField){
             word += flatArray[i]
         }
         if( word===CROSS.repeat(gameField.length)){
-            alert(`${CROSS} победил`)
             paintWinningFields(gameField, index, true)
-            return true
+            crossWin()
         }
         else if( word===ZERO.repeat(gameField.length)){
-            alert(`${ZERO} победил`)
             paintWinningFields(gameField, index, true)
-            return true
+            zeroWin()
         }
     }
-    const checkDiagonalWinner = () => {
 
+    const checkLeftToRightDiagonal=() =>{
+        let flatArray = gameField.flat(2)
+        let word = ''
+        for (let i = 0; i < flatArray.length; i+=gameField.length+1){
+            if(flatArray[i]===EMPTY)
+                continue
+            word += flatArray[i]
+        }
+        if(word === CROSS.repeat(gameField.length)){
+            paintWinningFields(gameField, gameField, false, true)
+            crossWin()
+        }
+            
+        else if(word === ZERO.repeat(gameField.length)){
+            paintWinningFields(gameField, gameField, false, true)
+            zeroWin()
+        }
     }
-    const paintWinningFields = (line, startIndex, col = false) => {
+    
+    const checkDiagonalWinner = () => {
+        let flatArray = gameField.flat(2)
+        console.log(flatArray)
+        let word1 = ''
+        let ind = gameField.length -1 
+        for (let i = gameField.length-1; i < flatArray.length-1; i+=gameField.length-1){
+            if(flatArray[i]===EMPTY)
+                continue
+            word1 += flatArray[i]
+        }
+
+        if(word1 === CROSS.repeat(gameField.length)){
+            paintWinningFields(gameField, gameField, false, false, true)
+            crossWin()
+        }
+        else if(word1 === ZERO.repeat(gameField.length)){
+            paintWinningFields(gameField, gameField, false, false, true)
+            zeroWin()
+        }
+        checkLeftToRightDiagonal()
+    }
+
+    const paintWinningFields = (line, startIndex, col = false, diagLR = false, diagRL = false) => {
+        if(diagLR){
+            for (let i = 0; i < line.length; i++) {
+                findCell(i, i).style.color = 'red'
+            }
+            return
+        }
+        if(diagRL){
+            let j = gameField.length-1
+            for (let i = 0; i < line.length; i++) {
+                findCell(i, j).style.color = 'red'
+                j--
+            }
+            return
+        }
         if (col){
             for (let i = 0; i < line.length; i++) {
                 findCell(i, startIndex).style.color = 'red'
@@ -92,6 +160,7 @@ function checkWinner(gameField){
             findCell(startIndex, i).style.color = 'red'
         }
     }
+
     checkHorizontalWinner()
     for(let i=0;i<gameField.length;i++){
         if(checkVerticalWinner(i)){
@@ -101,17 +170,54 @@ function checkWinner(gameField){
     checkDiagonalWinner()
 }
 
-function cellClickHandler (row, col) {
-    if (gameField[row][col]===EMPTY){
-        let fieldState = clickCounter % 2 === 0 ? CROSS : ZERO;
-        gameField[row][col] = fieldState;
-        console.log(`Clicked on cell: ${row}, ${col}`);
-        clickCounter++;
-        renderSymbolInCell(fieldState, row, col);
-        console.log(gameField);
+function randomInteger(min, max) {
+    let rand = min + Math.random() * (max + 1 - min);
+    return Math.floor(rand);
+}
+
+function makeList(){
+    let list = [] 
+    for(let i = 0; i<gameField.length; i++){
+        for(let j = 0; j<gameField.length; j++){
+            if(gameField[i][j]===EMPTY)
+                list.push([i, j])
+        }
     }
+    console.log(list)
+    return list
+}
+
+function Bot (){
+    let list = makeList()
+    let rnd = randomInteger(0,list.length-1)
+    let row = list[rnd][0]
+    let col = list[rnd][1]
+    if(checkWin === false){
+        //console.log(`Clicked on cell: ${row}, ${col}`);
+        renderSymbolInCell(ZERO, row, col);
+        gameField[row][col] = ZERO
+        clickCounter++;
+        return ZERO
+    }
+}
+
+function Player (row, col){
+    gameField[row][col] = CROSS
+    console.log(`Clicked on cell: ${row}, ${col}`);
+    renderSymbolInCell(CROSS, row, col);
+    clickCounter++;
+    return CROSS
+}
+
+function cellClickHandler (row, col) {
+    if (gameField[row][col]===EMPTY && checkWin === false){
+        Player(row, col)
+    }
+    console.log(gameField);
     checkWinner(gameField)
-    if (clickCounter === possibleClicksCount)
+    if(checkWin === false)
+            Bot();
+    if (clickCounter === possibleClicksCount && checkWin === false)
         alert('Победила дружба')
 }
 
@@ -133,6 +239,15 @@ function addResetListener () {
 }
 
 function resetClickHandler () {
+    for(let i=0; i<gameField.length; i++){
+        for(let j = 0; j<gameField.length; j++){
+            gameField[i][j]=EMPTY;
+            renderSymbolInCell(EMPTY, i, j)
+        }
+    }
+    clickCounter = 0
+    checkWin = false
+    console.log(gameField)
     console.log('reset!');
 }
 
